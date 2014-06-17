@@ -69,7 +69,7 @@ twitter_geomap.updateUserList = function (data) {
 twitter_geomap.markerCount = 0;
 
 // set this to true for testing.  false for production mode
-twitter_geomap.testMode = true;
+twitter_geomap.testMode = false;
 
 // announce to the console which mode the app is in
 if (twitter_geomap.testMode)
@@ -82,7 +82,7 @@ else
 // actual connections and logs sent to the logging server
 
 twitter_geomap.ac = new activityLogger().echo(true).testing(twitter_geomap.testMode);
-twitter_geomap.ac.registerActivityLogger("http://xd-draper.xdata.data-tactics-corp.com:1337", "Kitware_Twitter_GeoBrowser", "2.0");
+twitter_geomap.ac.registerActivityLogger("http://xd-draper.xdata.data-tactics-corp.com:1337", "Kitware_Twitter_GeoBrowser", "3.0");
 
 twitter_geomap.config = null;
 twitter_geomap.locationData = null;
@@ -787,9 +787,18 @@ window.onload = function () {
                     retval = colormap;
                 } else if (which === 'rb') {
                     d3.select(that.legend).selectAll("*").remove();
+                    range = ['red', 'white'] ;
+                    scale = d3.scale.linear()
+                        .domain([0, N - 1])
+                        .range(range);
 
-                    invert = document.getElementById("invert").checked;
-                    range = invert ? ['red', 'white'] : ['white', 'red'];
+                    retval = function (d, i) {
+                        return scale(i);
+                    };
+                }  else if (which === 'invert') {
+                    d3.select(that.legend).selectAll("*").remove();
+
+                    range =  ['white', 'red'];
                     scale = d3.scale.linear()
                         .domain([0, N - 1])
                         .range(range);

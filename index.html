@@ -96,66 +96,88 @@
                 <div id="time-slider"></div>
                 <div class=code id="low"></div>
                 <div class=code id="high"></div>
-                <a class="btn btn-default btn-xs" id=zoom>Zoom to range</a>
-                <a class="btn btn-default btn-xs disabled" id=unzoom>Unzoom</a>
+                <a class="btn btn-default btn-xs" id='zoom'>Reset to full date range</a>
+                <a class="btn btn-default btn-xs disabled" id='unzoom'>Set back to previous subrange</a>
             </div>
 
             <div class=col-md-3>
-                <h4>User filter <i id=username-filter-help class=icon-question-sign></i></h4>
-                <input id=user type=text>
+                <h4>User filter <i id='username-filter-help' class=icon-question-sign></i></h4>
+                <input id='user' type=text>
             </div>
+
 
             <div class=col-md-3>
                 <h4>Record count limit</h4>
-                <input id=record-limit type=text value=1000>
+                <input id='record-limit' type=text value=1000>
+                <!--
                 <h4 style="margin-top: 20px">Content Search string: </h4>
                 <input id=content-string type=text value=''>
+                -->
             </div>
+
 
             <div class=col-md-3>
                 <h4>&nbsp</h4>
-                <a id=abort class="btn btn-large"></a>
+                <a id='abort' class="btn btn-large"></a>
             </div>
-        </div>
+
+
+          </div>
+
 
         <div class=row>
+
+        <div class=col-md-3>
+        <hr>
+            <h4>Tweet Mark Size</h4>
+            <label class=radio>
+                <input name=size type=radio id='recency'>Older tweets are larger
+            </label>
+
+            <label class=radio>
+                <input name=size type=radio id=constant checked> Constant radius
+            </label>
+            <input type=text id=size class=span value=5 style="margin-left:20px"> radius
+        </div>
+
             <div class=col-md-3>
-                <h4>Day filter</h4>
+                <h4>Filter query result by day</h4>
                 <label class="checkbox">
-                    <input type=checkbox id=Sun> Sunday
+                    <input type=checkbox id=Sun checked> Sunday
                 </label>
 
                 <label class="checkbox">
-                    <input type=checkbox id=Mon> Monday
+                    <input type=checkbox id=Mon checked> Monday
                 </label>
 
                 <label class="checkbox">
-                    <input type=checkbox id=Tue> Tuesday
+                    <input type=checkbox id=Tue checked> Tuesday
                 </label>
 
                 <label class="checkbox">
-                    <input type=checkbox id=Wed> Wednesday
+                    <input type=checkbox id=Wed checked> Wednesday
                 </label>
 
                 <label class="checkbox">
-                    <input type=checkbox id=Thu> Thursday
+                    <input type=checkbox id=Thu checked> Thursday
                 </label>
 
                 <label class="checkbox">
-                    <input type=checkbox id=Fri> Friday
+                    <input type=checkbox id=Fri checked> Friday
                 </label>
 
                 <label class="checkbox">
-                    <input type=checkbox id=Sat> Saturday
+                    <input type=checkbox id=Sat checked> Saturday
                 </label>
             </ul>
         </div>
 
-        <div class=col-md-5>
-            <h4>Colormap</h4>
+      
 
-            <div class=row>
-                <div class=col-md-5>
+
+        <div class='col-md-4'>
+    
+            <h4>Tweet Color</h4>
                     <label class=radio>
                         <input name=colormap type=radio id=month> Month
                     </label>
@@ -166,33 +188,24 @@
 
                     <label class=radio>
                         <input name=colormap type=radio id=rb> Recency (red is recent)
-                        <label class=checkbox>
-                            <input type=checkbox id=invert> Invert scale
-                        </label>
                     </label>
+                        <label class=radio>
+                            <input name=colormap type=radio id=invert> Inverted Recency  (white is recent)
+                        </label>
 
                     <label class=radio>
-                        <input name=colormap type=radio id=none checked> None
+                        <input name=colormap type=radio id=none checked> Uniform color
                     </label>
-                </div>
-            </div>
-        </div>
+            
+            <hr>
 
-        <div class=col-md-3>
-            <h4>Glyph size</h4>
-            <label class=radio>
-                <input name=size type=radio id=recency> Recency (smaller is recent)
-            </label>
+            <h4>Tweet Opacity</h4>
+            <div id='opacity' class=span2></div>
+            <hr>
 
-            <label class=radio>
-                <input name=size type=radio id=constant checked> Constant
-            </label>
-            <input type=text id=size class=span1 value=5>
         </div>
+ 
 
-        <div class=col-md-2>
-            <h4>Opacity</h4>
-            <div id=opacity class=span2></div>
-        </div>
-    </div>
+
+    
 </div>
