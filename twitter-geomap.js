@@ -493,7 +493,7 @@ function loggedVisitToEntry(d) {
 window.onload = function () {
     "use strict";
 
-    tangelo.requireCompatibleVersion("0.2");
+    //tangelo.requireCompatibleVersion("0.2");
 
         var options,
             div,
