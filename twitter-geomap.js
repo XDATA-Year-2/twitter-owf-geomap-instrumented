@@ -16,6 +16,54 @@
 var twitter_geomap = {};
 twitter_geomap.map = null;
 twitter_geomap.timeslider = null;
+twitter_geomap.users = null;
+
+// reset the user list on a new time range query
+twitter_geomap.resetUserList = function () {
+    twitter_geomap.users = {
+        array: [],
+        obj: {}
+    };
+    $('#user').autocomplete({ source: [] });
+};
+
+// update the user list from a mongo response
+twitter_geomap.updateUserList = function (data) {
+
+    var that = twitter_geomap;
+    that.resetUserList();
+
+    // Collect a list of all users and sort by the number of tweets.
+    var users = that.users.obj,
+        userArray = that.users.array,
+        user;
+    data.forEach(function (d) {
+        if (users[d.user] === undefined) {
+            users[d.user] = 1;
+        } else {
+            users[d.user] += 1;
+        }
+    });
+    for (user in users) {
+        if (users.hasOwnProperty(user)) {
+            userArray.push({
+                user: user,
+                count: users[user]
+            });
+        }
+    }
+    userArray = userArray.sort(function (a, b) {
+        return b.count - a.count;
+    }).map(
+        function (d) { return d.user; }
+    );
+
+    // Update the user filter selection box
+    $('#user').autocomplete({ source: function (request, response) {
+        var results = $.ui.autocomplete.filter(userArray, request.term);
+        response(results.slice(0, 10));
+    }});
+};
 
 // keep track of how many entities are actually on the screen
 twitter_geomap.markerCount = 0;
@@ -194,7 +242,7 @@ function setConfigDefaults() {
     d3.select("#mongodb-coll").property("value", cfg.coll);
 }
 
-function retrieveData() {
+function retrieveData(saveUserList) {
     "use strict";
 
     var times,
@@ -317,6 +365,9 @@ function retrieveData() {
 
             // Store the retrieved values in the map object.
             twitter_geomap.map.locations(occurrences);
+            if (!saveUserList) {
+                twitter_geomap.updateUserList(occurrences);
+            }
 
             // Redraw the map.
             twitter_geomap.map.draw();
@@ -1032,7 +1083,7 @@ window.onload = function () {
                 var userSelector = document.getElementById("user")
                 console.log("user filter change:",userSelector.value)
                 twitter_geomap.ac.logUserActivity("user changed to: "+userSelector.value, "userChange", twitter_geomap.ac.WF_EXPLORE);
-                retrieveData();
+                retrieveData();//;userSelector !== '');
         };
 
         var onRecordLimitChange = function () {
@@ -1044,7 +1095,15 @@ window.onload = function () {
 
         // The database lookup should happen again when the hashtag list or record
         // count limit field changes.
-        d3.select("#user").node().onchange = onUserNameChange;
+        $('#user').autocomplete({
+            change: onUserNameChange,
+            minLength: 0
+        }).keyup(function (evt) {
+            // respond to enter by starting a query
+            if (evt.which === 13) {
+                onUserNameChange();
+            }
+        });
         d3.select("#record-limit").node().onchange = onRecordLimitChange;
 
         // Attach actions to the zoom and unzoom buttons.
