@@ -317,6 +317,11 @@ function retrieveData(saveUserList) {
                 return;
             }
 
+            // sort the results by date
+            response.result.data = response.result.data.sort(function (a, b) {
+                return a.date.$date - b.date.$date;
+            });
+
             // Indicate success, display the number of records, and disable the
             // button.
             N = response.result.data.length;
@@ -787,7 +792,7 @@ window.onload = function () {
                     retval = colormap;
                 } else if (which === 'rb') {
                     d3.select(that.legend).selectAll("*").remove();
-                    range = ['red', 'white'] ;
+                    range = ['white', 'red'] ;
                     scale = d3.scale.linear()
                         .domain([0, N - 1])
                         .range(range);
@@ -798,7 +803,7 @@ window.onload = function () {
                 }  else if (which === 'invert') {
                     d3.select(that.legend).selectAll("*").remove();
 
-                    range =  ['white', 'red'];
+                    range =  ['red', 'white'];
                     scale = d3.scale.linear()
                         .domain([0, N - 1])
                         .range(range);
