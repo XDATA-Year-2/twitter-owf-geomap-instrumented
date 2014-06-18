@@ -296,7 +296,7 @@ function retrieveData(saveUserList) {
         data: {
             query: JSON.stringify(query),
             limit: d3.select("#record-limit").node().value,
-            sort: JSON.stringify([['date', 1]])
+            sort: JSON.stringify([['randomNumber', 1]])
         },
         dataType: 'json',
         success: function (response) {
