@@ -81,8 +81,10 @@ else
 // messages are actually sent.  This allows easy debugging during local testing. Set testing=false to attempt
 // actual connections and logs sent to the logging server
 
-twitter_geomap.ac = new activityLogger().echo(true).testing(twitter_geomap.testMode);
-twitter_geomap.ac.registerActivityLogger("http://xd-draper.xdata.data-tactics-corp.com:1337", "Kitware_Twitter_GeoBrowser", "3.0");
+twitter_geomap.ac = new activityLogger().echo(true).testing(twitter_geomap.testMode).mute(['SYS']);
+//twitter_geomap.ac.registerActivityLogger("http://xd-draper.xdata.data-tactics-corp.com:1337", "Kitware_Twitter_GeoBrowser", "3.0");
+twitter_geomap.ac.registerActivityLogger("http://10.1.90.46:1337", "Kitware_Twitter_GeoBrowser", "3.01");
+
 
 twitter_geomap.config = null;
 twitter_geomap.locationData = null;
@@ -498,8 +500,8 @@ function GMap(elem, options) {
 // also included in the log message.
 
 function zoomChangedListener(thisWithMap,action) {
-    console.log("detected zoom change")
-    twitter_geomap.ac.logUserActivity("map zoom changed", "map-zoom",twitter_geomap.ac.WF_EXPLORE);
+    //console.log("detected zoom change")
+    twitter_geomap.ac.logUserActivity("map zoom changed", "zoom",twitter_geomap.ac.WF_EXPLORE);
 }
 
 
@@ -508,8 +510,8 @@ function zoomChangedListener(thisWithMap,action) {
 // also included in the log message.
 
 function mapDraggedListener(thisWithMap,action) {
-    console.log("map drag: "+action)
-    twitter_geomap.ac.logUserActivity("map drag: "+action, "map-drag-"+action, twitter_geomap.ac.WF_EXPLORE);
+    //console.log("map drag: "+action)
+    twitter_geomap.ac.logUserActivity("map drag: "+action, "pan-"+action, twitter_geomap.ac.WF_EXPLORE);
 }
 
 // declaration of a map listener that sends a log message whenever the map extent is changed. The Google API is used to
@@ -531,7 +533,7 @@ function boundsChangedListener(thisWithMap) {
             //numEntitiesDisplayed = twitter_geomap.markerCount
             //console.log("markers",numEntitiesDisplayed)
             //twitter_geomap.ac.logUserActivity("map bounds: "+boundaryString+" displayCount: "+numEntitiesDisplayed, "bounds_changed", twitter_geomap.ac.WF_EXPLORE);
-            twitter_geomap.ac.logUserActivity("map bounds: "+boundaryString, "bounds_changed", twitter_geomap.ac.WF_EXPLORE);
+            twitter_geomap.ac.logSystemActivity("map bounds: "+boundaryString, "bounds_changed", twitter_geomap.ac.WF_EXPLORE);
 
         }
 }
@@ -1020,9 +1022,9 @@ window.onload = function () {
         //
         // Set to Middle East
         options = {
-            zoom: 4,
+            zoom: 6,
             //center: new google.maps.LatLng(8.86, 30.33),
-            center: new google.maps.LatLng(0,-55),
+            center: new google.maps.LatLng(8,-68),
             mapTypeId: google.maps.MapTypeId.ROADMAP
         };
         div = d3.select("#map").node();
@@ -1134,7 +1136,7 @@ window.onload = function () {
                     var value,
                         bounds;
 
-                    twitter_geomap.ac.logUserActivity("zoom out to full time interval - time slider", "zoomer", twitter_geomap.ac.WF_EXPLORE);
+                    twitter_geomap.ac.logUserActivity("zoom timescale in - time slider", "zoom-time-in", twitter_geomap.ac.WF_CREATE);
 
                     // Return immediately if the handles are already at the bounds.
                     //value = slider.getValue();
@@ -1163,7 +1165,7 @@ window.onload = function () {
                 unzoomer: function (slider) {
                     var bounds;
 
-                    twitter_geomap.ac.logUserActivity("zoom in to shorter time interval - time slider", "unzoomer", twitter_geomap.ac.WF_EXPLORE);
+                    twitter_geomap.ac.logUserActivity("zoom timescale out - time slider", "zoom-time-out", twitter_geomap.ac.WF_CREATE);
 
                     // Make sure this function is not being called when there are no
                     // entries in the stack.
