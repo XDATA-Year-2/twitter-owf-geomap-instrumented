@@ -527,7 +527,7 @@ function boundsChangedListener(thisWithMap) {
             h = thisWithMap.container.offsetHeight;
             containerTopLeftLatLng = proj.fromContainerPixelToLatLng({x: 0, y: 0});
             containerBottomRightLatLng = proj.fromContainerPixelToLatLng({x: w, y: h});
-            console.log("bounds: ",containerTopLeftLatLng,containerBottomRightLatLng);
+            //console.log("bounds: ",containerTopLeftLatLng,containerBottomRightLatLng);
             boundaryString = "[{"+containerTopLeftLatLng.k+","+containerTopLeftLatLng.A+"}, {"+containerBottomRightLatLng.k+","+containerBottomRightLatLng.A+"}]"
             // defeated the number displayed, because it tracked the query, not the actual number displayed because of the way
             // a single SVG contains all entities
