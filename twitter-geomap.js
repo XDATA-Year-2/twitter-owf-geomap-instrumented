@@ -70,6 +70,7 @@ twitter_geomap.markerCount = 0;
 
 // set this to true for testing.  false for production mode
 twitter_geomap.testMode = false;
+twitter_geomap.echoLogsToConsole = false
 
 // announce to the console which mode the app is in
 if (twitter_geomap.testMode)
@@ -81,7 +82,7 @@ else
 // messages are actually sent.  This allows easy debugging during local testing. Set testing=false to attempt
 // actual connections and logs sent to the logging server
 
-twitter_geomap.ac = new activityLogger().echo(true).testing(twitter_geomap.testMode).mute(['SYS']);
+twitter_geomap.ac = new activityLogger().echo(twitter_geomap.echoLogsToConsole).testing(twitter_geomap.testMode).mute(['SYS']);
 //twitter_geomap.ac.registerActivityLogger("http://xd-draper.xdata.data-tactics-corp.com:1337", "Kitware_Twitter_GeoBrowser", "3.0");
 twitter_geomap.ac.registerActivityLogger("http://10.1.90.46:1337", "Kitware_Twitter_GeoBrowser", "3.01");
 
