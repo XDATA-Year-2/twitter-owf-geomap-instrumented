@@ -69,7 +69,7 @@ twitter_geomap.updateUserList = function (data) {
 twitter_geomap.markerCount = 0;
 
 // set this to true for testing.  false for production mode
-twitter_geomap.testMode = false;
+twitter_geomap.testMode = true;
 twitter_geomap.echoLogsToConsole = false
 
 // announce to the console which mode the app is in
@@ -548,11 +548,10 @@ function loggedVisitToEntry(d) {
         twitter_geomap.ac.logUserActivity("hover over entity: "+d.user, "hover", twitter_geomap.ac.WF_EXPLORE);
 }
 
-// called when window is constructed and ready for the first rendering
-window.onload = function () {
-    "use strict";
 
-    //tangelo.requireCompatibleVersion("0.2");
+// called when window is constructed and ready for the first rendering
+function firstTimeInitializeMap() {
+    "use strict";
 
         var options,
             div,
@@ -1228,4 +1227,37 @@ window.onload = function () {
                 d3.select("#abort").classed("disabled", true);
             });
     };
+
+
+// added to integrate with OWF.  The window.onload call now checks if OWF is present and 
+// initializes a listener if it is present.  A listener is required because other widgets 
+// will set the bounds this app should use to render. 
+
+   /**
+        * The function called every time a message is received on the eventing channel
+        */
+      var processMessage = function(sender, msg) {
+        console.log("geomap received message:",msg)
+      };
+
+function setupOWFListener() {
+   console.log("call setupOWFListener")
+
+}
+
+function setupStub() {
+   console.log("subscribing as listener");
+   OWF.Eventing.subscribe('mychannel', this.processMessage);
+}
+
+// Ozone provides a way to test for an active session
+owfdojo.addOnLoad(function() {
+
+    	if (OWF.Util.isRunningInOWF()) {
+		setupOWFListener()
+		OWF.ready(setupStub);
+    	}
+   	firstTimeInitializeMap()
+ 
+});
 
