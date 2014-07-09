@@ -1233,29 +1233,49 @@ function firstTimeInitializeMap() {
 // initializes a listener if it is present.  A listener is required because other widgets 
 // will set the bounds this app should use to render. 
 
-   /**
-        * The function called every time a message is received on the eventing channel
-        */
-      var processMessage = function(sender, msg) {
+// this function is the top-level function invoked every time a message
+// is received on the OWF message bus.  The messages received 
+
+var processEchoMessage = function(sender, msg) {
         console.log("geomap received message:",msg)
-      };
+};
+
+var processCenterMessage = function(sender, msg) {
+        console.log("geomap processing center");
+	var newCenter = {lat: parseFloat(msg.lat), lng: parseFloat(msg.lon)}
+	twitter_geomap.map.map.setZoom(8)
+	twitter_geomap.map.map.setCenter(newCenter)
+	twitter_geomap.map.update()
+};
+
+var processBoundsMessage = function(sender, msg) {
+	console.log("geomap processing bounds");
+	var sw = {lat: parseFloat(JSON.parse(msg).bounds.southWest.lat),
+		  lng: parseFloat(JSON.parse(msg).bounds.southWest.lon)}
+	var ne = {lat: parseFloat(JSON.parse(msg).bounds.northEast.lat), 
+		  lng: parseFloat(JSON.parse(msg).bounds.northEast.lon)}
+	var swLatLng = new google.maps.LatLng(sw.lat,sw.lng)
+	var neLatLng = new google.maps.LatLng(ne.lat,ne.lng)
+	var bounds = new google.maps.LatLngBounds()
+	bounds.extend(swLatLng)
+	bounds.extend(neLatLng)
+	twitter_geomap.map.map.fitBounds(bounds)
+	twitter_geomap.map.draw()
+};
+
 
 function setupOWFListener() {
-   console.log("call setupOWFListener")
-
-}
-
-function setupStub() {
    console.log("subscribing as listener");
-   OWF.Eventing.subscribe('mychannel', this.processMessage);
+   OWF.Eventing.subscribe('kw.echo', this.processEchoMessage);
+   OWF.Eventing.subscribe('map.view.center.bounds', this.processBoundsMessage);
+   OWF.Eventing.subscribe('kw.map.center', this.processCenterMessage);
 }
 
 // Ozone provides a way to test for an active session
 owfdojo.addOnLoad(function() {
 
     	if (OWF.Util.isRunningInOWF()) {
-		setupOWFListener()
-		OWF.ready(setupStub);
+		OWF.ready(setupOWFListener);
     	}
    	firstTimeInitializeMap()
  
