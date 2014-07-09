@@ -18,6 +18,11 @@ twitter_geomap.map = null;
 twitter_geomap.timeslider = null;
 twitter_geomap.users = null;
 
+// query logging
+// set this to true for testing mode of logging.  false for production mode (testmode=false actually sends logs)
+twitter_geomap.testMode = true;
+twitter_geomap.echoLogsToConsole = false
+
 // reset the user list on a new time range query
 twitter_geomap.resetUserList = function () {
     twitter_geomap.users = {
@@ -68,9 +73,7 @@ twitter_geomap.updateUserList = function (data) {
 // keep track of how many entities are actually on the screen
 twitter_geomap.markerCount = 0;
 
-// set this to true for testing.  false for production mode
-twitter_geomap.testMode = true;
-twitter_geomap.echoLogsToConsole = false
+
 
 // announce to the console which mode the app is in
 if (twitter_geomap.testMode)
@@ -1247,7 +1250,7 @@ var processCenterMessage = function(sender, msg) {
 	twitter_geomap.map.map.setCenter(newCenter)
 	twitter_geomap.map.update()
 };
-
+ 
 var processBoundsMessage = function(sender, msg) {
 	console.log("geomap processing bounds");
 	var sw = {lat: parseFloat(JSON.parse(msg).bounds.southWest.lat),
