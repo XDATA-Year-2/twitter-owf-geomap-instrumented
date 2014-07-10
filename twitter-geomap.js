@@ -918,6 +918,9 @@ function firstTimeInitializeMap() {
                 .on("mouseover", function(d) {
                     loggedVisitToEntry(d)
                 })
+           	.on("click", function(d) {
+                    selectEntryToExamine(d)
+                })
                 .each( function (d) {
                     twitter_geomap.markerCount = twitter_geomap.markerCount+1
                 });
@@ -1266,6 +1269,12 @@ var processBoundsMessage = function(sender, msg) {
 	twitter_geomap.map.draw()
 };
 
+// this routine issues an OWF bus message with the same of the entity that was clicked on
+function selectEntryToExamine(item) {
+	var selectionList = [item.user]
+	console.log("geomap selection:",selectionList)
+	OWF.Eventing.publish("entity.selection",selectionList)
+}
 
 function setupOWFListener() {
    console.log("subscribing as listener");
