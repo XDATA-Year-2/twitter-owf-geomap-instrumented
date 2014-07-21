@@ -165,7 +165,7 @@
 
 
 <!-- drop down panel for a specific day of the week to display -->
-<div id=tweet-dayselect-panel class="modal fade">
+<div id=tweet-sizeselect-panel class="modal fade">
     <div class=modal-dialog>
         <div class=modal-content>
             <div class=modal-header style="margin-left:30px">
@@ -197,6 +197,7 @@
         <li><a style=cursor:pointer data-toggle=modal data-target=#info-panel><span class="glyphicon glyphicon-info-sign"></span> Info</a>
         <li><a style=cursor:pointer data-toggle=modal data-target=#tweet-color-panel><span class="glyphicon glyphicon-info-sign"></span>Color</a>
         <li><a style=cursor:pointer data-toggle=modal data-target=#tweet-dayselect-panel><span class="glyphicon glyphicon-info-sign"></span>Weekday</a>
+        <li><a style=cursor:pointer data-toggle=modal data-target=#tweet-sizeselect-panel><span class="glyphicon glyphicon-info-sign"></span>Size</a>
     </ul>
 </div>
 
@@ -220,6 +221,7 @@
             <div class=col-md-3>
                 <h4>User filter <i id='username-filter-help' class=icon-question-sign></i></h4>
                 <input id='user' type=text>
+		<div id=clearUser class="btn btn-default" >Clear User</div>
             </div>
 
 

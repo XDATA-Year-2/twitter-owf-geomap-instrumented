@@ -134,7 +134,7 @@ twitter_geomap.getMongoDBInfo = function () {
     return {
         server: 'localhost',
         db:  'year2',
-        coll:  'twitter'
+        coll:  'twitter_sa'
 
     };
 };
@@ -283,8 +283,11 @@ function retrieveData(saveUserList) {
         hashtagquery = { 'user' : {$in : hashtags}};
     }
 
+    // add force to return only entries with 'mentioned'==true
+    var mentionedquery = {'mentioned':true};
+
     // Stitch all the queries together into a "superquery".
-    query = {$and : [timequery, hashtagquery]};
+    query = {$and : [timequery, hashtagquery, mentionedquery]};
     var querystring = JSON.stringify(query)
     twitter_geomap.ac.logUserActivity("User performed new query: "+querystring, "query", twitter_geomap.ac.WF_GETDATA);
 
@@ -919,7 +922,10 @@ function firstTimeInitializeMap() {
                     loggedVisitToEntry(d)
                 })
            	.on("click", function(d) {
-                    selectEntryToExamine(d)
+                    selectEntryToExamine(d);
+                    var userSelector = document.getElementById("user");
+		    userSelector.value = d.user;
+		    retrieveData();		   
                 })
                 .each( function (d) {
                     twitter_geomap.markerCount = twitter_geomap.markerCount+1
@@ -1031,7 +1037,9 @@ function firstTimeInitializeMap() {
             zoom: 6,
             //center: new google.maps.LatLng(8.86, 30.33),
             center: new google.maps.LatLng(8,-68),
-            mapTypeId: google.maps.MapTypeId.ROADMAP
+            //mapTypeId: google.maps.MapTypeId.ROADMAP
+            mapTypeId: google.maps.MapTypeId.TERRAIN
+
         };
         div = d3.select("#map").node();
         twitter_geomap.map = new GMap(div, options);
@@ -1200,6 +1208,14 @@ function firstTimeInitializeMap() {
             .data([twitter_geomap.timeslider])
             .on('click', zoomfunc.zoomer);
 
+	// when user clicks the button below the user input field, clear
+	// the value and redraw the map so all user's tweets are displayed.
+	d3.select("#clearUser")
+	    .on('click', function() {
+			var userSelector = document.getElementById("user");
+			userSelector.value = "";
+			retrieveData();
+		});
 
         d3.select("#unzoom")
             .data([twitter_geomap.timeslider])
