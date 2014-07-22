@@ -286,8 +286,19 @@ function retrieveData(saveUserList) {
     // add force to return only entries with 'mentioned'==true
     var mentionedquery = {'mentioned':true};
 
+    // Get the current map bounds.
+    var bounds = twitter_geomap.map.map.getBounds();
+    var boundsquery = {
+        location: {
+            $geoWithin: {
+                $box: [[bounds.getSouthWest().lng(), bounds.getSouthWest().lat()],
+                       [bounds.getNorthEast().lng(), bounds.getNorthEast().lat()]]
+            }
+        }
+    };
+
     // Stitch all the queries together into a "superquery".
-    query = {$and : [timequery, hashtagquery, mentionedquery]};
+    query = {$and : [timequery, hashtagquery, mentionedquery, boundsquery]};
     var querystring = JSON.stringify(query)
     twitter_geomap.ac.logUserActivity("User performed new query: "+querystring, "query", twitter_geomap.ac.WF_GETDATA);
 
