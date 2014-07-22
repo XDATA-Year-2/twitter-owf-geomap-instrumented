@@ -510,8 +510,12 @@ function GMap(elem, options) {
     google.maps.event.addListener(this.map, "dragend", function () { mapDraggedListener(that,"end"); });
     google.maps.event.addListener(this.map, "bounds_changed", function () { boundsChangedListener(that) });
     google.maps.event.addListener(this.map, "zoom_changed", function () { zoomChangedListener(that) });
+    google.maps.event.addListener(this.map, "center_changed", function () { centerChangedListener(that) });
 }
 
+// Throttled version of retrieveData(), so that panning the map doesn't cause
+// hundreds of requests to fire in a row.
+var throttledRetrieveData = _.throttle(retrieveData, 1000, {leading: false});
 
 // declaration of a map listener that sends a log message whenever the map is dragged. The Google API is used to
 // return the current lat,long of the displayed extent to pass to the logger.  The number of currently displayed entities is
@@ -520,6 +524,17 @@ function GMap(elem, options) {
 function zoomChangedListener(thisWithMap,action) {
     //console.log("detected zoom change")
     twitter_geomap.ac.logUserActivity("map zoom changed", "zoom",twitter_geomap.ac.WF_EXPLORE);
+    if (thisWithMap) {
+        throttledRetrieveData();
+    }
+}
+
+function centerChangedListener(thisWithMap,action) {
+    twitter_geomap.ac.logUserActivity("map center changed", "center",twitter_geomap.ac.WF_EXPLORE);
+
+    if (thisWithMap) {
+        throttledRetrieveData();
+    }
 }
 
 
