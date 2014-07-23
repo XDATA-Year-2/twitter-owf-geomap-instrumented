@@ -512,9 +512,7 @@ function GMap(elem, options) {
         var sw,
             ne,
             getMongoLng,
-            getMongoLat,
-            lats,
-            lngs;
+            getMongoLat;
 
         // Mongo stores the longitude as the FIRST component of the pair.
         getMongoLng = function (tweet) {
@@ -526,13 +524,9 @@ function GMap(elem, options) {
             return tweet.location[1];
         };
 
-        // Pluck out the lat and long values into their own arrays.
-        lats = _.map(this.locationData, getMongoLat);
-        lngs = _.map(this.locationData, getMongoLng);
-
         // Compute the min and max lat/long values.
-        sw = new google.maps.LatLng(_.min(lats), _.min(lngs));
-        ne = new google.maps.LatLng(_.max(lats), _.max(lngs));
+        sw = new google.maps.LatLng(getMongoLat(_.min(this.locationData, getMongoLat)), getMongoLng(_.min(this.locationData, getMongoLng)));
+        ne = new google.maps.LatLng(getMongoLat(_.max(this.locationData, getMongoLat)), getMongoLng(_.max(this.locationData, getMongoLng)));
 
         // Create a bounds object and supply it to the map object.
         this.map.fitBounds(new google.maps.LatLngBounds(sw, ne));
