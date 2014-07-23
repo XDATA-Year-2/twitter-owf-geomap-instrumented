@@ -248,7 +248,7 @@ function setConfigDefaults() {
     d3.select("#mongodb-coll").property("value", cfg.coll);
 }
 
-function retrieveData(saveUserList) {
+function retrieveData(opt) {
     "use strict";
 
     var times,
@@ -258,6 +258,9 @@ function retrieveData(saveUserList) {
         hashtagquery,
         query,
         mongo;
+
+    // Supply an empty options object by default.
+    opt = opt || {};
 
     // Interrogate the UI elements to build up a query object for the database.
     //
@@ -297,8 +300,9 @@ function retrieveData(saveUserList) {
         }
     };
 
-    // Stitch all the queries together into a "superquery".
-    query = {$and : [timequery, hashtagquery, mentionedquery, boundsquery]};
+    // Stitch all the queries together into a "superquery".  Omit the bounds
+    // query if we are is user-focusing mode.
+    query = {$and : [timequery, hashtagquery, mentionedquery].concat(opt.focusUser ? [] : [boundsquery])};
     var querystring = JSON.stringify(query)
     twitter_geomap.ac.logUserActivity("User performed new query: "+querystring, "query", twitter_geomap.ac.WF_GETDATA);
 
@@ -390,7 +394,7 @@ function retrieveData(saveUserList) {
 
             // Store the retrieved values in the map object.
             twitter_geomap.map.locations(occurrences);
-            if (!saveUserList) {
+            if (!opt.saveUserList) {
                 twitter_geomap.updateUserList(occurrences);
             }
 
@@ -503,6 +507,36 @@ function GMap(elem, options) {
     this.monthColor = d3.scale.category20();
 
     this.setMap(this.map);
+
+    this.zoomToFit = function (locations) {
+        var sw,
+            ne,
+            getMongoLng,
+            getMongoLat,
+            lats,
+            lngs;
+
+        // Mongo stores the longitude as the FIRST component of the pair.
+        getMongoLng = function (tweet) {
+            return tweet.location[0];
+        };
+
+        // Mongo stores the latitude as the SECOND component of the pair.
+        getMongoLat = function (tweet) {
+            return tweet.location[1];
+        };
+
+        // Pluck out the lat and long values into their own arrays.
+        lats = _.map(this.locationData, getMongoLat);
+        lngs = _.map(this.locationData, getMongoLng);
+
+        // Compute the min and max lat/long values.
+        sw = new google.maps.LatLng(_.min(lats), _.min(lngs));
+        ne = new google.maps.LatLng(_.max(lats), _.max(lngs));
+
+        // Create a bounds object and supply it to the map object.
+        this.map.fitBounds(new google.maps.LatLngBounds(sw, ne));
+    };
 
     that = this;
     google.maps.event.addListener(this.map, "drag", function () { that.draw(); });
@@ -1242,6 +1276,20 @@ function firstTimeInitializeMap() {
 			userSelector.value = "";
 			retrieveData();
 		});
+
+    // When the "focus user" button is clicked, and the user filter box is not
+    // blank, retrieve new data with bounds checking disabled, then
+    // automatically zoom to the right level to show all the tweets.
+    d3.select("#focusUser")
+        .on("click", function () {
+            if (d3.select("#user").property("value").length > 0) {
+                retrieveData({
+                    focusUser: true
+                });
+
+                twitter_geomap.map.zoomToFit();
+            }
+        });
 
         d3.select("#unzoom")
             .data([twitter_geomap.timeslider])
