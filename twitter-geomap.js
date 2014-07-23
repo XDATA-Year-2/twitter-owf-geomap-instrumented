@@ -398,6 +398,11 @@ function retrieveData(opt) {
                 twitter_geomap.updateUserList(occurrences);
             }
 
+            // If there is a callback, invoke it.
+            if (opt.callback) {
+                opt.callback();
+            }
+
             // Redraw the map.
             twitter_geomap.map.draw();
         }
@@ -1278,10 +1283,9 @@ function firstTimeInitializeMap() {
         .on("click", function () {
             if (d3.select("#user").property("value").length > 0) {
                 retrieveData({
-                    focusUser: true
+                    focusUser: true,
+                    callback: _.bind(twitter_geomap.map.zoomToFit, twitter_geomap.map)
                 });
-
-                twitter_geomap.map.zoomToFit();
             }
         });
 
