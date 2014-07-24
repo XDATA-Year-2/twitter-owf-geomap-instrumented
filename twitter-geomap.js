@@ -275,6 +275,7 @@ function retrieveData(saveUserList) {
     hashtags = [];
     if (hashtagText !== "") {
         hashtags = hashtagText.split(/\s+/);
+	//console.log('hashtags:',hashtags);
     }
 
     // Construct a query to find any entry containing any of these tags.
@@ -1315,14 +1316,32 @@ var processBoundsMessage = function(sender, msg) {
 function selectEntryToExamine(item) {
 	var selectionList = [item.user]
 	console.log("geomap selection:",selectionList)
+	var outObject = {'user':selectionList}
 	OWF.Eventing.publish("entity.selection",selectionList)
 }
+
+var processSelectionMessage = function(sender,msg) {
+	console.log("map receiving selection: setting user(s) to: ",msg);
+	var userSelector = document.getElementById("user");
+	// there might be one or more than one user in the message, so iterate
+	// over the list and convert to a string.  Add a space between each 
+	// name.
+	var userlist = ''
+	for (var i=0; i <msg.user.length; i++) {
+	  userlist += (msg.user[i]);
+	  userlist += ' '; 
+	}
+        userSelector.value = userlist;
+        retrieveData();
+}
+
 
 function setupOWFListener() {
    console.log("subscribing as listener");
    OWF.Eventing.subscribe('kw.echo', this.processEchoMessage);
    OWF.Eventing.subscribe('map.view.center.bounds', this.processBoundsMessage);
    OWF.Eventing.subscribe('kw.map.center', this.processCenterMessage);
+   OWF.Eventing.subscribe('tangelo.map.entity.selection', this.processSelectionMessage);
 }
 
 // Ozone provides a way to test for an active session
