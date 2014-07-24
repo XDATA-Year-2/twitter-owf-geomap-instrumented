@@ -95,6 +95,7 @@ twitter_geomap.locationData = null;
 
 twitter_geomap.dayColor = d3.scale.category10();
 twitter_geomap.monthColor = d3.scale.category20();
+twitter_geomap.userColor = d3.scale.category10();
 
 twitter_geomap.dayName = d3.time.format("%a");
 twitter_geomap.monthName = d3.time.format("%b");
@@ -879,6 +880,12 @@ function firstTimeInitializeMap() {
                     retval = function (d, i) {
                         return scale(i);
                     };
+                } else if (which === "user_color") {
+                    colormap = function (d) {
+                        return twitter_geomap.userColor(d.user);
+                    };
+
+                    retval = colormap;
                 } else {
                     d3.select(that.legend).selectAll("*").remove();
                     retval = "pink";
