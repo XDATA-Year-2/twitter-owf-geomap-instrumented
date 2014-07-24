@@ -17,6 +17,7 @@ var twitter_geomap = {};
 twitter_geomap.map = null;
 twitter_geomap.timeslider = null;
 twitter_geomap.users = null;
+twitter_geomap.mongo = null;
 
 // query logging
 // set this to true for testing mode of logging.  false for production mode (testmode=false actually sends logs)
@@ -126,20 +127,6 @@ twitter_geomap.dayNames = [
     "Sat"
 ];
 
-
-twitter_geomap.getMongoDBInfo = function () {
-    "use strict";
-
-    // Read in the config options regarding which MongoDB
-    // server/database/collection to use. Hardcode to reduce chance for errors during demonstrations.
-    return {
-        server: 'localhost',
-        db:  'year2',
-        coll:  'twitter_sa'
-
-    };
-};
-
 twitter_geomap.getMongoRange = function (host, db, coll, field, callback) {
     "use strict";
 
@@ -202,53 +189,6 @@ twitter_geomap.getMongoRange = function (host, db, coll, field, callback) {
     });
 };
 
-
-function showConfig() {
-    "use strict";
-
-    var cfg;
-
-    cfg = twitter_geomap.getMongoDBInfo();
-    d3.select("#mongodb-server").property("value", cfg.server);
-    d3.select("#mongodb-db").property("value", cfg.db);
-    d3.select("#mongodb-coll").property("value", cfg.coll);
-}
-
-function updateConfig() {
-    "use strict";
-
-    var server,
-        db,
-        coll;
-
-    // Grab the elements.
-    server = document.getElementById("mongodb-server");
-    db = document.getElementById("mongodb-db");
-    coll = document.getElementById("mongodb-coll");
-
-    // Write the options into DOM storage.
-    localStorage.setItem('twitter_geomap:mongodb-server', server.value);
-    localStorage.setItem('twitter_geomap:mongodb-db', db.value);
-    localStorage.setItem('twitter_geomap:mongodb-coll', coll.value);
-}
-
-function setConfigDefaults() {
-    "use strict";
-
-    var cfg;
-
-    // Clear out the locally stored options.
-    localStorage.removeItem('twitter_geomap:mongodb-server');
-    localStorage.removeItem('twitter_geomap:mongodb-db');
-    localStorage.removeItem('twitter_geomap:mongodb-coll');
-
-    // Retrieve the new config values, and set them into the fields.
-    cfg = twitter_geomap.getMongoDBInfo();
-    d3.select("#mongodb-server").property("value", cfg.server);
-    d3.select("#mongodb-db").property("value", cfg.db);
-    d3.select("#mongodb-coll").property("value", cfg.coll);
-}
-
 function retrieveData(opt) {
     "use strict";
 
@@ -309,7 +249,6 @@ function retrieveData(opt) {
     twitter_geomap.ac.logUserActivity("User performed new query: "+querystring, "query", twitter_geomap.ac.WF_GETDATA);
 
     // Enable the abort button and issue the query to the mongo module.
-    mongo = twitter_geomap.getMongoDBInfo();
     d3.select("#abort")
         .classed("btn-success", false)
         .classed("btn-danger", true)
@@ -318,7 +257,7 @@ function retrieveData(opt) {
 
     twitter_geomap.currentAjax = $.ajax({
         type: 'POST',
-        url: '/service/mongo/' + mongo.server + '/' + mongo.db + '/' + mongo.coll,
+        url: '/service/mongo/' + twitter_geomap.mongo.server + '/' + twitter_geomap.mongo.db + '/' + twitter_geomap.mongo.coll,
         data: {
             query: JSON.stringify(query),
             limit: d3.select("#record-limit").node().value,
@@ -414,13 +353,9 @@ function retrieveData(opt) {
 function getMinMaxDates(zoom) {
     "use strict";
 
-    var mongo;
-
-    mongo = twitter_geomap.getMongoDBInfo();
-
     // Get the earliest and latest times in the collection, and set the slider
     // range/handles appropriately.
-    twitter_geomap.getMongoRange(mongo.server, mongo.db, mongo.coll, "date", function (min, max) {
+    twitter_geomap.getMongoRange(twitter_geomap.mongo.server, twitter_geomap.mongo.db, twitter_geomap.mongo.coll, "date", function (min, max) {
         // Retrieve the timestamps from the records.
         min = min.$date;
         max = max.$date;
@@ -629,8 +564,6 @@ function firstTimeInitializeMap() {
             popover_cfg,
             zoomfunc,
             redraw;
-
-        setConfigDefaults();
 
         // Create control panel.
         $("#control-panel").controlPanel();
@@ -1400,10 +1333,13 @@ function setupOWFListener() {
 // Ozone provides a way to test for an active session
 owfdojo.addOnLoad(function() {
 
-    	if (OWF.Util.isRunningInOWF()) {
+    if (OWF.Util.isRunningInOWF()) {
 		OWF.ready(setupOWFListener);
-    	}
-   	firstTimeInitializeMap()
+    }
+
+    tangelo.config("config.json", function (cfg) {
+        twitter_geomap.mongo = cfg;
+        firstTimeInitializeMap();
+    });
  
 });
-
