@@ -478,11 +478,6 @@ function boundsChangedListener(thisWithMap) {
             containerBottomRightLatLng = proj.fromContainerPixelToLatLng({x: w, y: h});
             //console.log("bounds: ",containerTopLeftLatLng,containerBottomRightLatLng);
             boundaryString = "[{"+containerTopLeftLatLng.k+","+containerTopLeftLatLng.A+"}, {"+containerBottomRightLatLng.k+","+containerBottomRightLatLng.A+"}]"
-            // defeated the number displayed, because it tracked the query, not the actual number displayed because of the way
-            // a single SVG contains all entities
-            //numEntitiesDisplayed = twitter_geomap.markerCount
-            //console.log("markers",numEntitiesDisplayed)
-            //twitter_geomap.ac.logUserActivity("map bounds: "+boundaryString+" displayCount: "+numEntitiesDisplayed, "bounds_changed", twitter_geomap.ac.WF_EXPLORE);
             twitter_geomap.ac.logSystemActivity("map bounds: "+boundaryString, "bounds_changed", twitter_geomap.ac.WF_EXPLORE);
 
         }
@@ -1164,6 +1159,10 @@ function firstTimeInitializeMap() {
 			retrieveData();
 		});
 
+
+	d3.select("#explore-trends-button")
+	    .on("click",sendBoundsMessage);
+
     // When the "focus user" button is clicked, and the user filter box is not
     // blank, retrieve new data with bounds checking disabled, then
     // automatically zoom to the right level to show all the tweets.
@@ -1231,6 +1230,9 @@ var processCenterMessage = function(sender, msg) {
 };
  
 var processBoundsMessage = function(sender, msg) {
+     // If we were not the instance who sent a message on this channel, process it... 
+     var senderObj = JSON.parse(sender);  
+     if (senderObj.id !== OWF.getInstanceId()) {
 	console.log("geomap processing bounds");
 	var sw = {lat: parseFloat(JSON.parse(msg).bounds.southWest.lat),
 		  lng: parseFloat(JSON.parse(msg).bounds.southWest.lon)}
@@ -1243,9 +1245,32 @@ var processBoundsMessage = function(sender, msg) {
 	bounds.extend(neLatLng)
 	twitter_geomap.map.map.fitBounds(bounds)
 	twitter_geomap.map.draw()
+      }
 };
 
+// this function creates a bounds message to export the area our geomap is currently observing. This
+// way Aperture Tiles and other apps can coordinate views with Geomap's view to show their aggregated
+// feeds over the area. 
+
+function sendBoundsMessage() {
+  var bounds = twitter_geomap.map.map.getBounds();
+  var sw = {}
+  var ne = {}
+  sw.lat = bounds.getSouthWest().lat();
+  sw.lon = bounds.getSouthWest().lng();
+  ne.lat = bounds.getNorthEast().lat();
+  ne.lon = bounds.getNorthEast().lng();
+  var msg = {}
+  msg.bounds = {"southWest": sw, "northEast": ne}
+  // put in a placeholder value just to pass parsing and keep the message format the same
+  msg.tile = {"level":10,"xIndex":321,"yIndex":541}
+  console.log("bounds to send: ",msg)
+  OWF.Eventing.publish("map.view.center.bounds",JSON.stringify(msg))
+}
+
+
 // this routine issues an OWF bus message with the same of the entity that was clicked on
+//
 function selectEntryToExamine(item) {
 	var selectionList = [item.user]
 	console.log("geomap selection:",selectionList)
@@ -1271,10 +1296,10 @@ var processSelectionMessage = function(sender,msg) {
 
 function setupOWFListener() {
    console.log("subscribing as listener");
-   OWF.Eventing.subscribe('kw.echo', this.processEchoMessage);
    OWF.Eventing.subscribe('map.view.center.bounds', this.processBoundsMessage);
-   OWF.Eventing.subscribe('kw.map.center', this.processCenterMessage);
    OWF.Eventing.subscribe('tangelo.map.entity.selection', this.processSelectionMessage);
+   //OWF.Eventing.subscribe('kw.echo', this.processEchoMessage);
+   //OWF.Eventing.subscribe('kw.map.center', this.processCenterMessage);
 }
 
 // Ozone provides a way to test for an active session
