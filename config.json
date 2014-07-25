@@ -1,5 +1,5 @@
 {
     "server": "localhost",
     "db": "year2",
-    "coll": "twitter_sa"
+    "coll": "twitter_sa_2"
 }
