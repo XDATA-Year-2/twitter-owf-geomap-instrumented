@@ -1,5 +1,12 @@
 {
     "server": "localhost",
     "db": "year2",
-    "coll": "twitter_sa_2"
+    "coll": "twitter_sa_2",
+    "userEnteredMessagesEnabled" : true,
+    "userEnteredChannel" : "geomap.entity.entered",
+    "timeChangeChannel" : "geomap.time.bounds",
+    "timeChangeMessagesEnabled" : true,
+    "boundsChangeToLoggingServer" : false,
+    "boundsChangeMessagesEnabled" : true,
+    "boundsChangeChannel" : "geomap.center.view.bounds"
 }

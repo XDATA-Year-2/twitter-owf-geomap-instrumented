@@ -17,7 +17,7 @@ var twitter_geomap = {};
 twitter_geomap.map = null;
 twitter_geomap.timeslider = null;
 twitter_geomap.users = null;
-twitter_geomap.mongo = null;
+twitter_geomap.config = null;
 
 // query logging
 // set this to true for testing mode of logging.  false for production mode (testmode=false actually sends logs)
@@ -90,8 +90,6 @@ twitter_geomap.ac = new activityLogger().echo(twitter_geomap.echoLogsToConsole).
 //twitter_geomap.ac.registerActivityLogger("http://xd-draper.xdata.data-tactics-corp.com:1337", "Kitware_Twitter_GeoBrowser", "3.0");
 twitter_geomap.ac.registerActivityLogger("http://10.1.90.46:1337", "Kitware_Twitter_GeoBrowser", "3.01");
 
-
-twitter_geomap.config = null;
 twitter_geomap.locationData = null;
 
 twitter_geomap.dayColor = d3.scale.category10();
@@ -204,7 +202,7 @@ function retrieveData(opt) {
 
     twitter_geomap.currentAjax = $.ajax({
         type: 'POST',
-        url: 'twitter-geo-search/' + twitter_geomap.mongo.server + '/' + twitter_geomap.mongo.db + '/' + twitter_geomap.mongo.coll,
+        url: 'twitter-geo-search/' + twitter_geomap.config.server + '/' + twitter_geomap.config.db + '/' + twitter_geomap.config.coll,
         data: {
             box: opt.focusUser ? "null" : JSON.stringify(boundsquery.location['$geoWithin']['$box']),
             users: JSON.stringify(hashtags),
@@ -302,7 +300,7 @@ function getMinMaxDates(zoom) {
 
     // Get the earliest and latest times in the collection, and set the slider
     // range/handles appropriately.
-    twitter_geomap.getMongoRange(twitter_geomap.mongo.server, twitter_geomap.mongo.db, twitter_geomap.mongo.coll, "date", function (min, max) {
+    twitter_geomap.getMongoRange(twitter_geomap.config.server, twitter_geomap.config.db, twitter_geomap.config.coll, "date", function (min, max) {
         // Retrieve the timestamps from the records.
         min = min.$date;
         max = max.$date;
@@ -425,7 +423,7 @@ function GMap(elem, options) {
     google.maps.event.addListener(this.map, "drag", function () { that.draw(); });
     google.maps.event.addListener(this.map, "dragstart", function () { mapDraggedListener(that,"start"); });
     google.maps.event.addListener(this.map, "dragend", function () { mapDraggedListener(that,"end"); });
-    google.maps.event.addListener(this.map, "bounds_changed", function () { boundsChangedListener(that) });
+    google.maps.event.addListener(this.map, "bounds_changed", function () { throttledBoundsChangedListener(that) });
     google.maps.event.addListener(this.map, "zoom_changed", function () { zoomChangedListener(that) });
     google.maps.event.addListener(this.map, "center_changed", function () { centerChangedListener(that) });
 }
@@ -468,8 +466,11 @@ function mapDraggedListener(thisWithMap,action) {
 // return the current lat,long of the displayed extent to pass to the logger.  The number of currently displayed entities is
 // also included in the log message.
 
+// Throttled version  so that movement doesn't cause hundreds of requests to fire in a row.
+var throttledBoundsChangedListener = _.throttle(boundsChangedListener, 2000, {leading: false});
+
 function boundsChangedListener(thisWithMap) {
-        //console.log("detected bounds change")
+        console.log("sending bounds change messages")
         if (thisWithMap.locationData) {
             proj = thisWithMap.getProjection();
             w = thisWithMap.container.offsetWidth;
@@ -478,8 +479,14 @@ function boundsChangedListener(thisWithMap) {
             containerBottomRightLatLng = proj.fromContainerPixelToLatLng({x: w, y: h});
             //console.log("bounds: ",containerTopLeftLatLng,containerBottomRightLatLng);
             boundaryString = "[{"+containerTopLeftLatLng.k+","+containerTopLeftLatLng.A+"}, {"+containerBottomRightLatLng.k+","+containerBottomRightLatLng.A+"}]"
-            twitter_geomap.ac.logSystemActivity("map bounds: "+boundaryString, "bounds_changed", twitter_geomap.ac.WF_EXPLORE);
-
+            // if enabled in the config file at startup
+            if (twitter_geomap.boundsChangeToLoggingServer) {
+                twitter_geomap.ac.logSystemActivity("map bounds: "+boundaryString, "bounds_changed", twitter_geomap.ac.WF_EXPLORE);
+            }
+            // if we are sending OWF messages for bounds changes (enabled in config file), then send a message
+            if (twitter_geomap.boundsChangeMessagesEnabled) {
+                sendMapChangedMessage()
+            }
         }
 }
 
@@ -1054,6 +1061,10 @@ function firstTimeInitializeMap() {
         var onUserNameChange = function () {
                 var userSelector = document.getElementById("user")
                 console.log("user filter change:",userSelector.value)
+                // if we are sending OWF messages for user changes (enabled in config file), then send a message
+                if (twitter_geomap.userEnteredMessagesEnabled) {
+                    sendUserEnteredMessage()
+                }
                 twitter_geomap.ac.logUserActivity("user changed to: "+userSelector.value, "userChange", twitter_geomap.ac.WF_EXPLORE);
                 retrieveData();//;userSelector !== '');
         };
@@ -1111,6 +1122,12 @@ function firstTimeInitializeMap() {
                     slider.slider("option", "min", value[0]);
                     slider.slider("option", "max", value[1]);
 
+                    // OWF messaging
+                    if (twitter_geomap.timeChangeMessagesEnabled) {
+                        sendTimeChangeMessage(bounds)
+                    }
+
+
                     // Activate the unzoom button if this is the first entry in the
                     // stack.
                     if (stack.length === 1) {
@@ -1136,6 +1153,11 @@ function firstTimeInitializeMap() {
                     slider.slider("option", "min", bounds[0]);
                     //slider.setMax(bounds[1]);
                     slider.slider("option", "max", bounds[1]);
+
+                    // OWF messaging
+                    if (twitter_geomap.timeChangeMessagesEnabled) {
+                        sendTimeChangeMessage(bounds)
+                    }
 
                     // If the stack now contains no entries, disable the unzoom
                     // button.
@@ -1268,6 +1290,40 @@ function sendBoundsMessage() {
   OWF.Eventing.publish("map.view.center.bounds",JSON.stringify(msg))
 }
 
+// this function exports a bounds changed message when the map is repositioned.  It coordinates
+
+function sendMapChangedMessage() {
+  var bounds = twitter_geomap.map.map.getBounds();
+  var sw = {}
+  var ne = {}
+  sw.lat = bounds.getSouthWest().lat();
+  sw.lon = bounds.getSouthWest().lng();
+  ne.lat = bounds.getNorthEast().lat();
+  ne.lon = bounds.getNorthEast().lng();
+  var msg = {}
+  msg.bounds = {"southWest": sw, "northEast": ne}
+  // put in a placeholder value just to pass parsing and keep the message format the same
+  //msg.tile = {"level":10,"xIndex":321,"yIndex":541}
+  console.log("bounds to send: ",msg)
+  OWF.Eventing.publish(twitter_geomap.config.boundsChangeChannel,JSON.stringify(msg))
+}
+
+function sendUserEnteredMessage() {
+    hashtagText = d3.select("#user").node().value;
+    var selectionList = [hashtagText]
+    //console.log("geomap selection:",selectionList)
+    var outObject = {'user':selectionList}
+    OWF.Eventing.publish("entity.selection",selectionList)  
+}
+
+// send an OWF message indicating the time being viewed on the map has changed
+function sendTimeChangeMessage(bounds) {
+  var msg = {}
+  msg.time = {"min":bounds[0],"max":bounds[1]}
+  console.log("sending time msg:",msg)
+  OWF.Eventing.publish(twitter_geomap.config.timeChangeChannel,JSON.stringify(msg))
+}
+
 
 // this routine issues an OWF bus message with the same of the entity that was clicked on
 //
@@ -1310,7 +1366,7 @@ owfdojo.addOnLoad(function() {
     }
 
     tangelo.config("config.json", function (cfg) {
-        twitter_geomap.mongo = cfg;
+        twitter_geomap.config = cfg;
         firstTimeInitializeMap();
     });
  
