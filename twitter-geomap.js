@@ -480,11 +480,11 @@ function boundsChangedListener(thisWithMap) {
             //console.log("bounds: ",containerTopLeftLatLng,containerBottomRightLatLng);
             boundaryString = "[{"+containerTopLeftLatLng.k+","+containerTopLeftLatLng.A+"}, {"+containerBottomRightLatLng.k+","+containerBottomRightLatLng.A+"}]"
             // if enabled in the config file at startup
-            if (twitter_geomap.boundsChangeToLoggingServer) {
+            if (twitter_geomap.config.boundsChangeToLoggingServer) {
                 twitter_geomap.ac.logSystemActivity("map bounds: "+boundaryString, "bounds_changed", twitter_geomap.ac.WF_EXPLORE);
             }
             // if we are sending OWF messages for bounds changes (enabled in config file), then send a message
-            if (twitter_geomap.boundsChangeMessagesEnabled) {
+            if (twitter_geomap.config.boundsChangeMessagesEnabled) {
                 sendMapChangedMessage()
             }
         }
@@ -1062,7 +1062,8 @@ function firstTimeInitializeMap() {
                 var userSelector = document.getElementById("user")
                 console.log("user filter change:",userSelector.value)
                 // if we are sending OWF messages for user changes (enabled in config file), then send a message
-                if (twitter_geomap.userEnteredMessagesEnabled) {
+                if (twitter_geomap.config.userEnteredMessagesEnabled) {
+                    console.log("condition true - sending")
                     sendUserEnteredMessage()
                 }
                 twitter_geomap.ac.logUserActivity("user changed to: "+userSelector.value, "userChange", twitter_geomap.ac.WF_EXPLORE);
@@ -1123,7 +1124,8 @@ function firstTimeInitializeMap() {
                     slider.slider("option", "max", value[1]);
 
                     // OWF messaging
-                    if (twitter_geomap.timeChangeMessagesEnabled) {
+                    console.log("about to send time msg")
+                    if (twitter_geomap.config.timeChangeMessagesEnabled) {
                         sendTimeChangeMessage(bounds)
                     }
 
@@ -1313,7 +1315,7 @@ function sendUserEnteredMessage() {
     var selectionList = [hashtagText]
     //console.log("geomap selection:",selectionList)
     var outObject = {'user':selectionList}
-    OWF.Eventing.publish("entity.selection",selectionList)  
+    OWF.Eventing.publish(twitter_geomap.config.userEnteredChannel,selectionList)  
 }
 
 // send an OWF message indicating the time being viewed on the map has changed
