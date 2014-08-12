@@ -1181,6 +1181,10 @@ function firstTimeInitializeMap() {
 			var userSelector = document.getElementById("user");
 			userSelector.value = "";
 			retrieveData();
+
+            if (twitter_geomap.config.clearUserMessageEnabled) {
+                sendClearUserMessage();
+            }
 		});
 
 
@@ -1316,6 +1320,11 @@ function sendUserEnteredMessage() {
     //console.log("geomap selection:",selectionList)
     var outObject = {'user':selectionList}
     OWF.Eventing.publish(twitter_geomap.config.userEnteredChannel,selectionList)  
+}
+
+function sendClearUserMessage() {
+    // TODO: replace this with a more meaningful channel/message.
+    OWF.Eventing.publish(twitter_geomap.userEnteredChannel, "");
 }
 
 // send an OWF message indicating the time being viewed on the map has changed
