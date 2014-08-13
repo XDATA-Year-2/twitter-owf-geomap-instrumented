@@ -1324,7 +1324,8 @@ function sendUserEnteredMessage() {
 
 function sendClearUserMessage() {
     // TODO: replace this with a more meaningful channel/message.
-    OWF.Eventing.publish(twitter_geomap.userEnteredChannel, "");
+    var outObject = {'user': []}
+    OWF.Eventing.publish(twitter_geomap.config.userEnteredChannel, "");
 }
 
 // send an OWF message indicating the time being viewed on the map has changed
