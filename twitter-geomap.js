@@ -1122,6 +1122,7 @@ function firstTimeInitializeMap() {
                     //slider.setMin(value[0]);
                     slider.slider("option", "min", value[0]);
                     slider.slider("option", "max", value[1]);
+                    bounds = [slider.slider("option", "min"), slider.slider("option", "max")];
 
                     // OWF messaging
                     console.log("about to send time msg")
@@ -1157,7 +1158,7 @@ function firstTimeInitializeMap() {
                     slider.slider("option", "max", bounds[1]);
 
                     // OWF messaging
-                    if (twitter_geomap.timeChangeMessagesEnabled) {
+                    if (twitter_geomap.config.timeChangeMessagesEnabled) {
                         sendTimeChangeMessage(bounds)
                     }
 
