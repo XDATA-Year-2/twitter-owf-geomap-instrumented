@@ -335,6 +335,8 @@ function getMinMaxDates(zoom) {
 
             twitter_geomap.displayFunc(low, high);
             retrieveData();
+	    // occasionally send time changes out 
+	    throttledSendTimeChangeMessage(ui.values); 
         });
     });
 }
@@ -1337,6 +1339,8 @@ function sendTimeChangeMessage(bounds) {
   OWF.Eventing.publish(twitter_geomap.config.timeChangeChannel,JSON.stringify(msg))
 }
 
+// have a version of the time change that fires only occassionally
+var throttledSendTimeChangeMessage = _.throttle(sendTimeChangeMessage, 1000, {leading: false});
 
 // this routine issues an OWF bus message with the same of the entity that was clicked on
 //
